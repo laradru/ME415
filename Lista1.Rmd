@@ -1,0 +1,23 @@
+---
+title: "Lista1"
+author: "Lara"
+date: "2023-08-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r }
+
+```
+
+```{r }
+
+```
+
+```{r }
+
+```
