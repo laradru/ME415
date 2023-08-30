@@ -11,13 +11,74 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r }
-
+library(readr)
+library(tidyverse)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(magrittr)
+library(lubridate)
+library(dplyr)
+library(knitr)
 ```
 
 ```{r }
-
+county <- read_csv("~/Desktop/Metodo Cientifico/Listas/ME415/county.csv")
 ```
 
 ```{r }
+str(county)
+```
+
+```{r }
+datacounty<- county %>% select(unemployment_rate, median_hh_income)
+```
+a)
+```{r }
+datacounty %>% ggplot(aes(x = median_hh_income)) + geom_histogram(binwidth =700, col = 1)+
+  labs(x= "salario", y = "Frquência")+
+  theme_bw()
+```
+
+```{r }
+datacounty %>% ggplot(aes(x = unemployment_rate)) + geom_histogram(binwidth =0.2, col = 1)+
+  labs(x= "taxa", y = "Frquência")+
+  theme_bw()
+```
+
+```{r }
+datacounty %>% ggplot(aes(x = median_hh_income)) + geom_boxplot()+
+  labs(x= "salario")+
+  theme_bw()
+```
+
+```{r }
+datacounty %>% ggplot(aes(x = unemployment_rate)) + geom_boxplot()+
+  labs(x= "taxa")+
+  theme_bw()
+```
+
+```{r }
+getmode <- function(variavel){
+  uniq.variavel <- unique(variavel)
+  value <- uniq.variavel[[which.max(tabulate(match(variavel, uniq.variavel)))]]
+  return(value)
+}
+
+
+descritivas <- function(variavel){
+  medidas <- summary(variavel)
+  moda <- getmode(variavel)
+  variancia <- var(variavel)
+  desvio <- sd(variavel)
+  cv <-  (desvio/mean(variavel))*100
+  
+  return(c(Medidas = medidas, Moda = moda, Variancia = variancia, Desvio.Padrao = desvio, Coef.Variacao = cv))
+}
+
+kable(apply(datacounty, 2, descritivas))
 
 ```
+
+
+
