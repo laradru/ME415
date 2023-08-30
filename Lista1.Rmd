@@ -60,6 +60,7 @@ datacounty %>% ggplot(aes(x = unemployment_rate)) + geom_boxplot()+
 ```
 
 ```{r }
+#nao valeu para bimodal, só unimodal
 getmode <- function(variavel){
   uniq.variavel <- unique(variavel)
   value <- uniq.variavel[[which.max(tabulate(match(variavel, uniq.variavel)))]]

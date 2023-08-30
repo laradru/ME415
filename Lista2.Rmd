@@ -1,0 +1,67 @@
+---
+title: "Lista2"
+author: "Lara"
+date: "2023-08-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#nao valeu para bimodal, só unimodal
+getmode <- function(variavel){
+  uniq.variavel <- unique(variavel)
+  value <- uniq.variavel[[which.max(tabulate(match(variavel, uniq.variavel)))]]
+  return(value)
+}
+
+
+descritivas <- function(variavel){
+  medidas <- summary(variavel[!is.na(variavel)])
+  moda <- getmode(variavel)
+  variancia <- var(variavel[!is.na(variavel)])
+  desvio <- sd(variavel[!is.na(variavel)])
+  cv <-  (desvio/mean(variavel[!is.na(variavel)]))*100
+  n <- length((variavel[!is.na(variavel)]))
+  
+  return(c(Medidas = medidas, Moda = moda, Variancia = variancia, Desvio.Padrao = desvio, Coef.Variacao = cv, n = n))
+}
+
+```
+
+
+```{r }
+x<-c(3,5,5,5,8,11,11,11,13)
+y<-c(3,5,5,5,8,11,11,11,20)
+
+descritivas(x)
+descritivas(y)
+```
+```{r }
+w<-c(-20,0,0,0,15,25,30,30)
+z<-c(-40,0,0,0,15,25,30,30)
+
+descritivas(w)
+descritivas(z)
+```
+
+
+```{r }
+a<-c(0,2,4,6,8,10)
+b<-c(20,22,24,26,28,30)
+
+descritivas(a)
+descritivas(b)
+```
+
+
+```{r }
+c<-c(100, 200, 300, 400, 500)
+d<-c(0, 50, 300, 550, 600)
+
+descritivas(c)
+descritivas(d)
+```
