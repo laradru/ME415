@@ -1,0 +1,61 @@
+---
+title: "Semana1"
+author: "Grupo"
+date: "2023-09-14"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r }
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+```
+
+# Efeito do tamanho da turma no desempenho escolar.
+
+O objetivo principal do estudo é verificar o que acontece com o desempenho dos alunos se o tamanho da turma for reduzido. Com base nesses resultados, recomendações serão fornecidas para que políticas públicas sejam adotadas.
+
+
+#Importação do banco de dados
+```{r }
+getwd()
+eua.escolas <- read_xlsx("P2/dados.xlsx")
+```
+
+```{r }
+head(eua.escolas)
+```
+# Quais variáveis estão relacionadas ao problema?
+## Análise inicial
+Podemos pensar, inicialmente, que somente o tamanho da turma será a nossa variável independente (fator) e nossa variável resposta será o desempenho escolar. Pela descrição fornecida pelo pesquisadore, e olhando o banco de dados, vemos que a variável "tamanho de turma" está sendo representada por "str", que é o número de estudantes matriculados pelo número de professores. Ou seja, quanto maior essa razão, maior é o tamanho da turma. Por outro lado, vemos 3 variáveis que representam a variável resposta (desempenho escolar) que são: "read_scr" (que é a nota em leitura), "math_scr" (que é a nota em matemática) e "testscr" (que é a nota média entre leitura e matemática). Nesta análise, uaremos a nota do "testscr" para representar o desempenho dos alunos.
+
+A seguir, uma análise gráfica entre as duas variáveis:
+```{r }
+eua.escolas %>% ggplot(aes(x = str, y = testscr)) +
+  geom_point()+
+  labs(x= "Tamanho da turma", y = "Desempenho escolar médio", tittle = "Relação entre tamanho da turma e desempenho escolar") +
+  theme_bw()
+```
+Medidas de resumo:
+```{r }
+summary(eua.escolas$str)
+summary(eua.escolas$testscr)
+```
+Visualmente, vemos que os pontos vão diminuindo em y conforme avançamos em x, o que poderia indicar algum tipo de relação. Isso faz sentido, pois ao diminuirmos o tamanho da turma poderíamos pensar que os alunos recebem mais atenção dos professores e há menos barulho na sala de aula, permitindo uma melhor concentração na aula.
+
+Ao executarmos um teste de correlação (H0=correlacao é zero; H1 = correlacao é diferente de zero; alfa = 5%), como o teste abaixo, vemos que a correlação existe, é negativa (ou seja, conforme aumentamos a turma, a média do desempenho diminui), é significativa, ou seja, p-value = 3e-06 (é menor que 5% e portanto rejeitamos H0), porém é uma correlação fraca (-0.22). Isso sugere que talvez outras variáveis do banco precisem ser consideradas na análise do desempenho.
+```{r }
+cor.test(x = eua.escolas$str, y = eua.escolas$testscr)
+```
+## Adicionando outras variáveis
+
+
