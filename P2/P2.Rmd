@@ -1,0 +1,339 @@
+---
+title: "Semana1"
+author: "Grupo"
+date: "2023-09-14"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r }
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+```
+
+#_______________________________________________________ Efeito do tamanho da turma no desempenho escolar__________________________________________________
+O objetivo principal do estudo é verificar o que acontece com o desempenho dos alunos se o tamanho da turma for reduzido. Com base nesses resultados, recomendações serão fornecidas para que políticas públicas sejam adotadas.
+
+
+#Importação do banco de dados
+```{r }
+getwd()
+eua.escolas <- read_xlsx("dados.xlsx")
+View(eua.escolas)
+```
+
+```{r }
+head(eua.escolas)
+```
+# Quais variáveis estão relacionadas ao problema?
+## Análise inicial
+Podemos pensar, inicialmente, que somente o tamanho da turma será a nossa variável independente (fator) e nossa variável resposta será o desempenho escolar. Pela descrição fornecida pelo pesquisadore, e olhando o banco de dados, vemos que a variável "tamanho de turma" está sendo representada por "str", que é o número de estudantes matriculados pelo número de professores. Ou seja, quanto maior essa razão, maior é o tamanho da turma. Por outro lado, vemos 3 variáveis que representam a variável resposta (desempenho escolar) que são: "read_scr" (que é a nota em leitura), "math_scr" (que é a nota em matemática) e "testscr" (que é a nota média entre leitura e matemática). Nesta análise, uaremos a nota do "testscr" para representar o desempenho dos alunos.
+
+A seguir, uma análise gráfica entre as duas variáveis:
+```{r }
+eua.escolas %>% ggplot(aes(x = str, y = testscr)) +
+  geom_point()+
+  labs(x= "Tamanho da turma", y = "Desempenho escolar médio", title = "Relação entre tamanho da turma e desempenho escolar") +
+  theme_bw()
+```
+Medidas de resumo:
+```{r }
+summary(eua.escolas$str)
+summary(eua.escolas$testscr)
+```
+Visualmente, vemos que os pontos vão diminuindo em y conforme avançamos em x, o que poderia indicar algum tipo de relação. Isso faz sentido, pois ao diminuirmos o tamanho da turma poderíamos pensar que os alunos receberiam mais atenção dos professores. Com menos alunos na sala também há menos barulho, facilitando a concentração na aula.
+
+Ao executarmos um teste de correlação e um teste de hipótese t-student (H0=correlacao é zero; H1 = correlacao é diferente de zero; alfa = 5%), vemos que a correlação existe, é negativa (ou seja, conforme aumentamos a turma, a média do desempenho diminui), é significativa, ou seja, p-value = 3e-06 (é menor que 5% e portanto rejeitamos H0), porém é uma correlação fraca (-0.22). Isso sugere que talvez outras variáveis do banco precisem ser consideradas na análise do desempenho dos alunos.
+```{r }
+cor.test(x = eua.escolas$str, y = eua.escolas$testscr)
+```
+## Explorando relações com outras variáveis:
+
+# Porcentagem de aprendizes de inglês como segunda lingua (estrangeiros)
+Uma característica que poderia impactar o desempnho, além do tamanho da sala de aula, poderia ser o aprendizado de inglês. Em outras palavras, uma região com muitas crianças estrangeiras, que estão aprendendo a língua do país (inglês) podem desempenhar de forma diferente nas provas em relação ao nativos. Podemos então, investigar primeiramente, se há regioes com diferenças nos percentuais de estrangeiros e verificar como é a média nos testes (testscr). Agrupando os dados por county:
+```{r }
+en.learn <- eua.escolas %>% select(county, el_pct, testscr, str) %>% group_by(county) %>%
+  summarise(el_pct = mean(el_pct), testscr = mean(testscr), str = mean(str)) %>% arrange(desc(el_pct))
+
+head(en.learn)
+```
+
+```{r }
+eua.escolas %>% select(county, el_pct, testscr, str) %>% group_by(county) %>%
+  summarise(el_pct = mean(el_pct), testscr = mean(testscr), str = mean(str)) %>% arrange(testscr)
+```
+
+Plotando esses dados num gráfico:
+```{r }
+en.learn %>% ggplot(aes(x = el_pct, y = testscr)) +
+  geom_point(aes(colour = county))+
+  labs(x= "Porcentagem de estrangeiros (aprendizes de inglês)", y = "Desempenho escolar médio", title = "Relação entre porcentagem de estrangeiros e desempenho escolar") +
+  theme_bw()
+```
+Visualmente, vemos que quanto maior a porcentagem de aprendizes de inglês na região (estrangeiros), mais baixo o desempenho escolar.
+Ao conduzirmos um teste de correlação e o respectivo teste de hipótese t-student (H0=correlacao é zero; H1 = correlacao é diferente de zero; alfa = 5%), vemos que a correlação existe, é negativa (ou seja, conforme aumentamos a porcentagem de estrangeiros na região, mais baixa a média do desempenho escolar); é significativa, ou seja, p-value = 1.561e-05 (é menor que 5% e portanto rejeitamos H0), e já vemos uma correlação considerável (-0.59). Isso sugere que, isoladamente, essa variável está mais fortemente correlacionada com o desempenho escolar do que o tamanho da sala.
+
+```{r }
+cor.test(x = en.learn$el_pct, y = en.learn$testscr)
+```
+
+Podemos também verificar a relação entre a porcentagem de aprendizes de inglês e a quantidade de alunos por sala:
+
+```{r }
+eua.escolas %>% ggplot(aes(x = el_pct, y = str)) +
+  geom_point()+
+  labs(x= "Porcentagem de estrangeiros (aprendizes de inglês)", y = "Tamanho da turma", title = "Relação entre porcentagem de estrangeiros e desempenho escolar") +
+  theme_bw()
+```
+```{r }
+cor.test(x = eua.escolas$el_pct, y = eua.escolas$str)
+```
+Vemos que também existe uma relação entre porcentagem de estudantes estrangeiros e tamanho de turmas. Visualmente: turmas menores tendem a ter menos estrangeiros. 
+A correlação é positiva (quanto maior a porcentagem de estrangeiros, maiores as turmas), é significativa, ou seja, p-value = 0.0001095 (é menor que 5% e portanto rejeitamos H0), mas essa relação é um pouco mais fraca (0.18), mas existe (não é nula)
+
+# Número de computadores/aluno nas escolas:
+Podemos também pensar que a quantidade de computadores disponíveis na escola pode impactar o desempenho dos alunos, no sentido de que quanto mais computadores disponíveis, mais o aprendizado é facilitado, e consequentemente, melhor o desempenho escolar. Consideremos a variável "computador por aluno"(comp_stu) e testscr:
+```{r }
+eua.escolas %>% ggplot(aes(x = comp_stu, y = testscr)) +
+  geom_point()+
+  labs(x= "Computador/aluno", y = "Desempenho escolar médio", title = "Relação entre computador/aluno e desempenho escolar") +
+  theme_bw()
+
+
+eua.escolas %>% ggplot(aes(x = comp_stu, y = testscr)) +
+  geom_point()+
+  labs(x= "Computador/aluno *10", y = "Desempenho escolar médio", title = "Relação entre computador/aluno e desempenho escolar") +
+  theme_bw()
+
+```
+Aparentemente há uma relação entre as variáveis. Vemos que para uma taxa baixa de pc/aluno o desempenho pode ser bem variado, mas quanto maior a razão computador/aluno, mais alto tende a ser o desempenho (ou ainda: não vemos baixos desempenhos quando a relação pc/aluno é alta). Realizando um teste de correlaçào, vemos que a correlação existe e é significativa (p<5%). A relacao é negativa (???) e vemos uma correlação moderada, mostrando que parece se tratar de um fator importante para ser considerado.  
+```{r }
+cor.test(x = eua.escolas$comp_stu, y = eua.escolas$testscr)
+
+cor(x = eua.escolas$comp_stu, y = eua.escolas$testscr)
+
+```
+
+
+Quando analisamos a relação pc/aluno e tamanho da turma, vemos que turmas maiores estão mais relacionadas a taxas pequenas de pc/aluno. Vemos uma tendencia de relacao entre altas txas de pc/aluno e turmas pequenas, que associado a informacao do grafico acima, INDICAM que o desempenho pode ser melhor com altas txas de pc/aluno e portanto turmas menores. 
+```{r }
+eua.escolas %>% ggplot(aes(x = comp_stu, y = str)) +
+  geom_point()+
+  labs(x= "Computador/aluno", y = "Tamanho da turma", title = "Relação entre computador/aluno e desempenho escolar") +
+  theme_bw()
+```
+
+
+A correlacao é negativa (inversamente proporcional) e significativa!
+```{r }
+cor.test(x = eua.escolas$comp_stu, y = eua.escolas$str)
+```
+
+
+## VARIÁVEIS SOCIO-ECONÔMICAS:
+Se a reduçao do tamanho das turmas se relaciona com melhores desempenhos, assim como mais computadores/aluno, faz sentido pensar que a recomendação seria contratar mais professores para reduzir o tamanho das turmas e  disponibilizar mais computadores, principalmente considerando regioes com mais estrangeiros. Porém essas medidas gerarão custos para os pais e para os counties.
+Dessa forma, precisamos analisar se isso é viável, ou seja, se representaria uma medida eficaz para melhorar o desempenho dos alunos.
+
+# Explorando a variável GASTOS/ALUNO (expn_stu) e RENDA do local (avginc)
+Como já imaginávamos, turmas pequenas têm gastos maiores por aluno. Redução de custo está relacionado a turmas grandes.
+
+```{r }
+eua.escolas %>% ggplot(aes(x = str, y = expn_stu)) +
+  geom_point()+
+  labs(x= "Tamnho da turma", y = "Gasto/aluno", title = "Relação entre tamanho da turma e gasto/aluno") +
+  theme_bw()
+```
+
+Podemos pensar também em categorizar a variável tamanho de turma, para verificar como as variáveis tamanho de turma, gastos/aluno e desempenho se relacionam:
+Vamos considerar turmas pequenas entre 14 a 19; turmas mdias entre 19 e 22 e turmas grandes 22 a 26.
+```{r }
+summary(eua.escolas$str)
+```
+```{r }
+eua.escolas$tamanho <- ifelse(eua.escolas$str < 19, "small", ifelse(eua.escolas$str >= 19 & eua.escolas$str < 22, "medium", "big"))
+```
+
+Grafico: Vemos que turmas pequenas sao as que dão maior gasto, e apesar de encontrarmos desempenhos bem variados em turmas pequenas, vemos que os melhores desempenhos estão contidos nesse grupo.O comportamento entre turmas grandes e médias é parecido em relacao ao desempenho, mesmo as turmas medias gastando mais por aluno. Como dito anteriormente, a reducao da turma talvez nao seja o principal fator a ser considerado para melhorar o desempenho.
+```{r }
+eua.escolas %>% ggplot(aes(x = expn_stu, y = testscr)) +
+  geom_point(aes(color = eua.escolas$tamanho))+
+  labs(x= "gastos/aluno", y = "Desempenho medio", title = "Relação entre gastos, desempenho e tamanho de turma") +
+  theme_bw()
+```
+
+Vamos categorizar a variável computadores/ aluno: 
+```{r }
+summary(eua.escolas$comp_stu)
+```
+
+```{r }
+eua.escolas$tx_pc <- ifelse(eua.escolas$comp_stu < 0.09377, "taxa_baixa", ifelse(eua.escolas$comp_stu >= 0.09377 & eua.escolas$comp_stu < 0.16447, "taxa_media", "taxa_alta"))
+```
+
+Vemos que, de forma geral, o desempenho 'não parece ser dependente da quantidade de pc/alunos. Há uma "aglomerado" de estudantes com desempenhos muito parecidos, independente de virem de escolas com altas taxas de pc/aluno ou baixa taxas de pc/alunos, independente dos custos por alunos.
+```{r }
+eua.escolas %>% ggplot(aes(x = expn_stu, y = testscr)) +
+  geom_point(aes(color = eua.escolas$tx_pc))+
+  labs(x= "gastos/aluno", y = "Desempenho medio") +
+  theme_bw()
+```
+
+
+
+
+
+
+
+
+
+Vamos veririfcar quais os counties considerados mais bem desenvolvidos e menos desenvolvidos. Vamos considerar a variavel "avginc", que é a renda média do local.
+
+```{r }
+hist(eua.escolas$avginc)
+```
+```{r }
+summary(eua.escolas$avginc)
+```
+
+```{r }
+quantile(eua.escolas$avginc)
+```
+Vamos classificar os counties de acordo com os quantis. Counties com renda menores que 10.6390 serão classificados como baixa-renda; counties com renda entre 10.6390 e 17.6290 serão classificados como media-renda e os acima de 17.6290, alta-renda: 
+
+```{r }
+eua.escolas$renda <- ifelse(eua.escolas$avginc < 10.6390, "low", ifelse(eua.escolas$avginc >= 10.6390 & eua.escolas$avginc < 17.6290, "medium", "high"))
+```
+
+Plotando desempenho com tamanho de turma e renda local, em locals de locais de alta renda, vemos os melhores desempenhos,  independente de tamanho de turma (turmas pequenas medias ou grandes). Também não vemos grandes mudanças entre os desempenhos de alunos de escolas em locais de baixa renda ao considerarmos o tamanho de turma: independentemente do tamanho, continuam com baixo desempenho. Talvez reduzir a turma nao seja o principal fator para melhorar o desempenho como mencionado anteriormente:
+```{r }
+eua.escolas %>% ggplot(aes(x = str, y = testscr)) +
+  geom_point(aes(color = eua.escolas$renda))+
+  labs(x= "tamanho da turma", y = "Desempenho medio") +
+  theme_bw()
+```
+
+Plotando o desempenho, com % de pc/aluno, por renda, vemos que mesmo com mesmas taxas de pc por aluno entre escolas de diferentes rendas,  os alunos de escolas de alta renda desempenham melhor! O que será o diferencial? se não é tamanho de turma, nem pc, o que poderia ser?
+```{r }
+eua.escolas %>% ggplot(aes(x = comp_stu, y = testscr)) +
+  geom_point(aes(color = eua.escolas$renda))+
+  labs(x= "% de pc/aluno", y = "Desempenho medio", title = "Relação entre % estrangeiros, desempenho e renda") +
+  theme_bw()
+```
+
+Plotando o desempenho, com % de estrangeiros e renda, confirmamos que maior quantidade de estrangeiros estao em locais de media e baixa rendas, e possuem desempenho escolar muito mais baixo. Isso sugere que um investir no ensino de qualidade de ingles nos locais de baixa renda pode contribuir melhor para o desempenho dos alunos do que reduçào do tamanho das turmas ou aumento de computador/aluno.
+```{r }
+eua.escolas %>% ggplot(aes(x = el_pct, y = testscr)) +
+  geom_point(aes(color = eua.escolas$renda))+
+  labs(x= "% de estrangeiros", y = "Desempenho medio", title = "Relação entre % estrangeiros, desempenho e renda") +
+  theme_bw()
+```
+
+# Explorando as variáveis alunos de baixa (meal_pct e calw_pct)
+
+Vamos explorar também como é a porcentagem de alunos de familia de baixa renda nos counties, ou seja, a porcentagem de alunos em programas de assistencia e que se qualificam para lanches a precos reduzidos (variáveis calw_pct e meal_pct respectivamente). Vemos primeiramente que entre escolas de regioes de alta renda, a porcentagem de alunos em programas de assistencia é baixa e nesses locais (praticamente menor que 10%), e o desempenho é alto. Vemos tam'bem que o desempenho é menor em locais de media e baixa renda, e nesses locais os programas de assistencia pública sao mais numerosos.
+```{r }
+eua.escolas %>% ggplot(aes(x = calw_pct, y = testscr)) +
+  geom_point(aes(color = eua.escolas$renda))+
+  labs(x= "% de alunos em programas de assistencia", y = "desempenho") +
+  theme_bw()
+```
+Ao verificarmos a relacao entre % de alunos que se qualificam para refeicoes com precos reduzidos e desempenho, por regioes de dierentes rendas, vemos que o desempenho também esta relacionado a % de alunos que se qualificam para almços com preços reduzidos, o que por sua vez se relaciona com regioes de média e baixa rendas: quanto mais baixa a renda, menor o desempenho escolar.
+```{r }
+eua.escolas %>% ggplot(aes(x = meal_pct, y = testscr)) +
+  geom_point(aes(color = eua.escolas$renda))+
+  labs(x= "% de alunos q se qualificam para almocos com preços reduzidos", y = "desempenho") +
+  theme_bw()
+``` 
+ 
+Portanto, a principio, achamos mais adequado o investimento em ensino de inglês, principalmente nas localidades de média e baixa-renda, onde há maior concentração de estrangeiros. Observamos que essa media parece ser mais eficaz do que reduzir o tamanho das turmas ou aumentar a disponibilidade de computadores por aluno.
+```{r }
+
+``` 
+
+#######_-------------------------------------------------------------------------------------
+#######_-------------------------------------------------------------------------------------
+#######_-------------------------------------------------------------------------------------
+
+# PARTE 2
+# Efeito do tamanho da turma no desempenho escolar__________________________________________________
+O objetivo principal do estudo é verificar o que acontece com o desempenho dos alunos se o tamanho da turma for reduzido. Com base nesses resultados, recomendações serão fornecidas para que políticas públicas sejam adotadas.
+
+# Metodologia
+```{r }
+
+``` 
+# Resultados
+Podemos pensar, inicialmente, que somente o tamanho da turma será a nossa variável independente (fator) e nossa variável resposta será o desempenho escolar. Pela descrição fornecida pelo pesquisador, e olhando o banco de dados, vemos que a variável "tamanho de turma" está sendo representada por "str", que é o número de estudantes matriculados pelo número de professores. Ou seja, quanto maior essa razão, maior é o tamanho da turma. Por outro lado, vemos 3 variáveis que representam a variável resposta (desempenho escolar) que são: "read_scr" (que é a nota em leitura), "math_scr" (que é a nota em matemática) e "testscr" (que é a nota média entre leitura e matemática). Nesta análise, uaremos a nota do "testscr" para representar o desempenho dos alunos.
+
+Seguem algumas medidas descritivas:
+```{r }
+descritiva<- function(variaveis){
+    mean <- mean(variaveis)
+    sd <- sd(variaveis)
+    quartis <- quantile(variaveis)
+    cv <- (mean(variaveis)/sd(variaveis))*100
+    
+  return(c(media = mean, desvio.padrao = sd,  quartis, coef.var = cv))
+}
+``` 
+
+```{r }
+descritiva(eua.escolas$str)
+
+descritiva(eua.escolas$testscr)
+``` 
+
+A seguir, uma análise gráfica entre as duas variáveis:
+
+```{r }
+eua.escolas %>% ggplot(aes(x = str, y = testscr)) +
+  geom_point()+
+  labs(x= "Tamanho da turma", y = "Desempenho escolar médio", title = "Relação entre tamanho da turma e desempenho escolar") +
+  theme_bw()
+```
+
+
+```{r }
+cor.test(x = eua.escolas$str, y = eua.escolas$testscr)
+```
+Vemos que conforme aumenta o tamanho da turma, diminui o desempenho escolar. O valor da correlação na amostra é de -0.23, indicando uma relação negativa (inversamente proporcional) e linearmente fraca entre as duas variáveis.
+
+
+```{r }
+
+``` 
+
+
+```{r }
+
+``` 
+
+```{r }
+
+``` 
+
+
+```{r }
+
+``` 
+
+
+
+
+
+
+
+
+
+
+
