@@ -1,0 +1,70 @@
+---
+title: "P2.2"
+author: "Lara"
+date: "2023-11-02"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r }
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(magrittr)
+library(readr)
+library(knitr)
+```
+
+# EXPERIMENTO 1
+
+# Importando os dados:
+```{r }
+exp1<- read_xlsx("helicopter.xlsx")
+str(exp1)
+```
+
+```{r }
+exp1 <- as.data.frame(exp1)
+str(exp1)
+```
+```{r }
+head(exp1)
+```
+
+# Descritiva/Exploratoria
+```{r }
+medidas.resumo <- exp1 %>% select(c(Helicoptero, Tmariana)) %>% group_by(Helicoptero) %>% summarise(Mediana = median(Tmariana), 
+                                                                                                    Media = mean(Tmariana), 
+                                                                                                    SD = sd(Tmariana),
+                                                                                                    Min = min(Tmariana),
+                                                                                                    Max= max(Tmariana),
+                                                                                                    Coef.var = (SD/Media)*100)
+
+kable(medidas.resumo, digits = 1, caption = "Tabela")
+```
+
+```{r }
+medidas.resumo %>% ggplot(aes(x=Helicoptero, y=Media, fill = Helicoptero)) + 
+  geom_bar(stat="identity", color="black", position=position_dodge()) +
+  geom_errorbar(aes(ymin=Media-SD, ymax=Media+SD), width=.2, position=position_dodge(.9), colour = "black")+
+  labs(title="...", x="Helicóptero", y = "Tempo de queda (minutos)")+
+  scale_fill_manual(values=c('#0000FF','#FF3300'))+
+  theme_bw()
+```
+
+
+```{r }
+
+```
+
+
+```{r }
+
+```
