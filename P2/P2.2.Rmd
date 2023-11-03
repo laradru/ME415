@@ -58,13 +58,50 @@ medidas.resumo %>% ggplot(aes(x=Helicoptero, y=Media, fill = Helicoptero)) +
   scale_fill_manual(values=c('#0000FF','#FF3300'))+
   theme_bw()
 ```
-
-
+# Suposição independencia
 ```{r }
+#Sim
+```
 
+# Suposição: normalidade para cada um dos Helicopteros
+H0: os dados apresentam dist Normal
+H1: Nao há normalidade
+Alfa 5%
+```{r }
+vermelho.mariana <- exp1 %>% select(Helicoptero, Tmariana) %>% filter(Helicoptero == "Vermelho") 
+shapiro.test(vermelho.mariana$Tmariana)
+#nao rejeito HO
+
+azul.mariana <- exp1 %>% select(Helicoptero, Tmariana) %>% filter(Helicoptero == "Azul") 
+shapiro.test(azul.mariana$Tmariana)
+#nao rejeito HO
+```
+
+# Teste de homocedasticidade
+H0: variancias homogeneas
+H1: Variancias nao sao homogeneas
+alfa 5%
+```{r }
+library(car)
+leveneTest(Tmariana ~ Helicoptero, exp1, center = mean)
+#rejeito H0
+```
+# Teste t-student heterocedástico
+HO: a media de tempo do helicopt vermelho = media tempo do helicoptero azul
+h1: as médias sao diferentes
+alfa: 5%
+```{r }
+t.test(vermelho.mariana$Tmariana, azul.mariana$Tmariana, alternative = "two.sided", var.equal = FALSE)
+#não rejeito H0
 ```
 
 
 ```{r }
 
 ```
+
+
+
+
+
+
