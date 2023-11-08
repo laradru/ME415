@@ -26,7 +26,7 @@ library(knitr)
 
 # Importando os dados:
 ```{r }
-exp1<- read_xlsx("helicopter.xlsx")
+exp1<- read_xlsx("helicopter.xlsx", sheet = "exp1")
 str(exp1)
 ```
 
@@ -34,6 +34,7 @@ str(exp1)
 exp1 <- as.data.frame(exp1)
 str(exp1)
 ```
+
 ```{r }
 head(exp1)
 ```
@@ -54,10 +55,19 @@ kable(medidas.resumo, digits = 1, caption = "Tabela")
 medidas.resumo %>% ggplot(aes(x=Helicoptero, y=Media, fill = Helicoptero)) + 
   geom_bar(stat="identity", color="black", position=position_dodge()) +
   geom_errorbar(aes(ymin=Media-SD, ymax=Media+SD), width=.2, position=position_dodge(.9), colour = "black")+
-  labs(title="...", x="Helicóptero", y = "Tempo de queda (minutos)")+
+  labs(title="...", x="Helicóptero", y = "Tempo de queda (segundos)")+
   scale_fill_manual(values=c('#0000FF','#FF3300'))+
   theme_bw()
 ```
+Coorte:
+```{r }
+exp1$Ordem <- rep(1:10,2)
+exp1 %>% ggplot(aes(x= Ordem, y = Tmariana, color = Helicoptero)) + geom_point()+
+  geom_line()+
+  labs(x = "ordem de lançamento", y = "tempo de queda")+
+  theme_bw()
+```
+
 # Suposição independencia
 ```{r }
 #Sim
@@ -86,19 +96,109 @@ library(car)
 leveneTest(Tmariana ~ Helicoptero, exp1, center = mean)
 #rejeito H0
 ```
-# Teste t-student heterocedástico
+# Teste t-student homocedástico
 HO: a media de tempo do helicopt vermelho = media tempo do helicoptero azul
 h1: as médias sao diferentes
 alfa: 5%
 ```{r }
-t.test(vermelho.mariana$Tmariana, azul.mariana$Tmariana, alternative = "two.sided", var.equal = FALSE)
+t.test(vermelho.mariana$Tmariana, azul.mariana$Tmariana, alternative = "two.sided", var.equal = TRUE)
 #não rejeito H0
 ```
 
 
+
+# EXPERIMENTO 2
+
+# Importando os dados:
+
 ```{r }
+exp2<- read_xlsx("helicopter.xlsx", sheet = "exp2")
+str(exp2)
+```
+
+```{r }
+exp2 <- as.data.frame(exp2)
+str(exp2)
+```
+
+```{r }
+head(exp2)
+```
+# Descritiva/Exploratoria
+```{r }
+medidas.resumo2 <- exp2 %>% select(c(Helicoptero, Tmedio)) %>% group_by(Helicoptero) %>% summarise(Mediana = median(Tmedio), 
+                                                                                                    Media = mean(Tmedio), 
+                                                                                                    SD = sd(Tmedio),
+                                                                                                    Min = min(Tmedio),
+                                                                                                    Max= max(Tmedio),
+                                                                                                    Coef.var = (SD/Media)*100)
+
+kable(medidas.resumo2, digits = 1, caption = "Tabela")
+```
+
+
+
+```{r }
+medidas.resumo2 %>% ggplot(aes(x=Helicoptero, y=Media, fill = Helicoptero)) + 
+  geom_bar(stat="identity", color="black", position=position_dodge()) +
+  geom_errorbar(aes(ymin=Media-SD, ymax=Media+SD), width=.2, position=position_dodge(.9), colour = "black")+
+  labs(title="...", x="Helicóptero", y = "Tempo médio de queda (segundos)")+
+  scale_fill_manual(values=c('#0000FF','#FF3300'))+
+  theme_bw()
+```
+
+# Suposição independencia
+```{r }
+#Sim
+```
+
+# Suposição: normalidade para cada um dos Helicopteros
+H0: os dados apresentam dist Normal
+H1: Nao há normalidade
+Alfa 5%
+```{r }
+vermelho <- exp2 %>% select(Helicoptero, Tmedio) %>% filter(Helicoptero == "Vermelho")
+shapiro.test(vermelho$Tmedio)
+#nao rejeito HO
+
+azul <- exp2 %>% select(Helicoptero, Tmedio) %>% filter(Helicoptero == "Azul") 
+shapiro.test(azul$Tmedio)
+#nao rejeito HO
+
 
 ```
+
+# Teste de homocedasticidade
+H0: variancias homogeneas
+H1: Variancias nao sao homogeneas
+alfa 5%
+```{r }
+library(car)
+leveneTest(Tmedio ~ Helicoptero, exp2, center = mean)
+#rejeito H0
+```
+
+
+# Teste t-student homocedástico
+HO: a media de tempo do helicopt vermelho = media tempo do helicoptero azul
+h1: as médias sao diferentes
+alfa: 5%
+```{r }
+t.test(vermelho$Tmedio, azul$Tmedio, alternative = "two.sided", var.equal = TRUE)
+#não rejeito H0
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
