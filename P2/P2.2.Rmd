@@ -98,10 +98,10 @@ leveneTest(Tmariana ~ Helicoptero, exp1, center = mean)
 ```
 # Teste t-student homocedástico
 HO: a media de tempo do helicopt vermelho = media tempo do helicoptero azul
-h1: as médias sao diferentes
+h1: a media de tempo do helicopt vermelho  > media tempo do helicoptero azul
 alfa: 5%
 ```{r }
-t.test(vermelho.mariana$Tmariana, azul.mariana$Tmariana, alternative = "two.sided", var.equal = TRUE)
+t.test(vermelho.mariana$Tmariana, azul.mariana$Tmariana, alternative = "greater", var.equal = TRUE)
 #não rejeito H0
 ```
 
@@ -181,10 +181,10 @@ leveneTest(Tmedio ~ Helicoptero, exp2, center = mean)
 
 # Teste t-student homocedástico
 HO: a media de tempo do helicopt vermelho = media tempo do helicoptero azul
-h1: as médias sao diferentes
+h1: a media de tempo do helicopt vermelho > media tempo do helicoptero azul
 alfa: 5%
 ```{r }
-t.test(vermelho$Tmedio, azul$Tmedio, alternative = "two.sided", var.equal = TRUE)
+t.test(x = vermelho$Tmedio, y= azul$Tmedio, alternative = "greater", var.equal = TRUE)
 #não rejeito H0
 ```
 
