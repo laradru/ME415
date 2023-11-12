@@ -11,6 +11,80 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r }
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(magrittr)
+library(readr)
+library(knitr)
+```
+
+# Importação dos dados
+```{r }
+variaveis <- read_table("vfumo.txt", col_names = TRUE)
+```
+
+```{r }
+variaveis <- as.data.frame(variaveis)
+```
+
+```{r }
+head(variaveis)
+```
+# Verificando NAs com função summary()
+Não há NAs
+```{r }
+variaveis %>% summary()
+```
+```{r }
+table(variaveis$smoke)
+```
+
+# Definições das variáveis:
+De acordo com o trecho, algumas variaveis sao determinantes do peso da criança:
+“. . . cigarette smoking seems to be a more significant determinant of birth weight than the mother’s prepregnancy height, weight, parity, payment status, or history of previous pregnancy outcome, or the infant’s sex. The reduction in birthweight associated with maternal tobacco use seems to be a direct effect of smoking on fetal growth”.
+O objetivo deste trabalho é verificar esta opini ̃ao atrav ́es da an ́alise do peso da crianc ̧a ao nascer (vari ́avel resposta). 
+
+
+Variável resposta: peso da criança ao nascer (wt)
+Variáveis preditoras: mae com habito de fumar na gravidez (smoke); altura da mae na gravidez (height), peso da mae na gravidez (wt_1), numero total de gravidez (parity), renda (inc), history of previous pregnancy outcome(?), sexo do bebe (sex)
+
+```{r }
+table(variaveis$smoke) #does mother smoke? 0=never, 1= smokes now, 2=until current pregnancy, 3=once did, not now, 9=unknown
+hist(variaveis$ht) #99=unknown
+hist(variaveis$wt_1) #999=unknown
+table(variaveis$parity) # quantas gravidez
+table(variaveis$inc) # 98 é unknown
+# historico do desfecho de gravidez previas nao disponivel
+table(variaveis$sex) # todos os bebes sao do sexo masculino
+```
+
+```{r }
 
 ```
+
+```{r }
+
+```
+
+```{r }
+
+```
+
+```{r }
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
